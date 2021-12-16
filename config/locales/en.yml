@@ -1,0 +1,22 @@
+en:
+  test: "This is a test"
+  start: "Download is started"
+  completed: "Download from file is completed. Download path: %{value}"
+  download_started: "Download from %{url} is started"
+  download_completed: "Download from %{url} is completed successfully"
+  invalid_path: "ERROR: Invalid path %{value}. File does not exist"
+  log_errors: "ERRORS: %{value}"
+  invalid_url: "URL %{url} is invalid"
+  out_of_space: "Unable to load File from %{url}. Low disk space"
+  file_too_large: "Unable to load File from %{url}. File is too large"
+  file_too_small: "Unable to load File from %{url}. File is too small"
+  invalid_content_type: "Unable to load File from %{url}. Invalid content type"
+  headers_invalid: "Unable to load File from %{url}. Headers are invalid"
+  timeout_error: "Unable to load File from %{url}. Connection fails"
+  file_is_unavailable: "Unable to load File from %{url}. File is unavailable"
+  response_error: "Unable to load File from %{url}. %{error}"
+  failed: "FAILED"
+
+
+
+

@@ -1,16 +1,13 @@
 # frozen_string_literal: true
 
-require 'faraday'
-require 'json'
+require_relative 'initializer'
 require_relative 'constants'
 require_relative 'logger'
-require_relative 'messages'
 require_relative 'validator'
 
 module FileDownloader
 
   extend Validator
-  extend Messages
   extend Constants::Defaults
 
   class << self
@@ -19,13 +16,17 @@ module FileDownloader
     attr_reader :file_path; private :file_path
 
     def download_from_file(path = nil, downloads_path = nil)
-      init_download_path(downloads_path)
-      init_file_path(path)
-      return unless path_valid?(file_path)
+      puts I18n.t(:start)
+      init_paths(path, downloads_path)
+      unless path_valid?(file_path)
+        puts I18n.t(:invalid_path, value: path)
+        return
+      end
 
       valid_urls = read_file
       process_valid_urls(valid_urls)
-      puts "ERRORS: #{logger.errors}" if logger.errors.size > 1
+      puts I18n.t(:log_errors, value: logger.errors) if logger.errors.size > 1
+      puts I18n.t(:completed, value: FileDownloader.downloads_path)
     end
 
     private
@@ -35,7 +36,7 @@ module FileDownloader
       File.foreach(Constants::Defaults::ROOT + file_path, sep = ' ') do |url|
         url.strip!
         unless url_valid?(url)
-          logger.errors << invalid_url_message(url)
+          logger.errors << I18n.t(:invalid_url, url: url)
           next
         end
 
@@ -53,14 +54,14 @@ module FileDownloader
     end
 
     def process_valid_url(url)
-      puts "Download from #{url} is started"
+      puts I18n.t(:download_started, url: url)
       unless can_download?(url)
-        puts "FAILED"
+        puts I18n.t(:failed)
         return
       end
 
       download_file(url)
-      puts "Download from #{url} is completed successfully"
+      puts I18n.t(:download_completed, url: url)
     end
 
     def can_download?(url)
@@ -74,23 +75,23 @@ module FileDownloader
       response = Faraday.head(url)
       return response.headers if response.status == 200
 
-      logger.errors << file_is_unavailable_message(url)
+      logger.errors << I18n.t(:file_is_unavailable, url: url)
       nil
     end
 
     def download_file(url)
       response = Faraday.get(url)
       unless response.status == 200
-        logger.errors << file_is_unavailable_message(url)
-        puts "FAILED"
+        logger.errors << I18n.t(:file_is_unavailable, url: url)
+        puts I18n.t(:failed)
         return
       end
 
       save_file(response)
     rescue Faraday::TimeoutError
-      logger.errors << timeout_error_message(url)
+      logger.errors << I18n.t(:timeout_error, url: url)
     rescue => e
-      logger.errors << error_message(url, e.message)
+      logger.errors << I18n.t(:response_error, url: url, error: e.message)
     end
 
     def save_file(response)
@@ -118,23 +119,23 @@ module FileDownloader
     def meta_data_conditions(meta_data, url)
       [
         {
-          message: headers_invalid_message(url),
+          message: I18n.t(:headers_invalid, url: url),
           block: -> { response_headers_valid?(meta_data) }
         },
         {
-          message: invalid_content_type_message(url),
+          message: I18n.t(:invalid_content_type, url: url),
           block: -> { content_type_valid?(meta_data['content-type']) }
         },
         {
-          message: file_too_large_message(url),
+          message: I18n.t(:file_too_large, url: url),
           block: -> { max_size_valid?(meta_data['content-length'].to_i) }
         },
         {
-          message: file_too_small_message(url),
+          message: I18n.t(:file_too_small, url: url),
           block: -> { min_size_valid?(meta_data['content-length'].to_i) }
         },
         {
-          message: out_of_space_message(url),
+          message: I18n.t(:out_of_space, url: url),
           block: -> { space_available?(meta_data['content-length'].to_i) }
         }
       ]
@@ -144,7 +145,7 @@ module FileDownloader
       is_valid = yield
       unless is_valid
         logger.errors << message
-        puts 'FAILED'
+        puts I18n.t(:failed)
         return false
       end
       true
@@ -164,6 +165,11 @@ module FileDownloader
                         else
                           Constants::Defaults::DOWNLOADS_PATH
                         end
+    end
+
+    def init_paths(path, downloads_path)
+      init_file_path(path)
+      init_download_path(downloads_path)
     end
   end
 end

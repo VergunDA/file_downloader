@@ -90,7 +90,7 @@ RSpec.describe FileDownloader do
 
     it "return add invalid url error" do
       described_class.send(:read_file)
-      expect(described_class.send(:logger).errors).to include(described_class.send(:invalid_url_message, urls.last))
+      expect(described_class.send(:logger).errors).to include(I18n.t('invalid_url', url: urls.last))
     end
   end
 
@@ -146,7 +146,7 @@ RSpec.describe FileDownloader do
     it "add error message to logger" do
       allow(Faraday).to receive(:head).and_return(bad_response)
       described_class.send(:fetch_file_metadata, 'url')
-      expect(described_class.send(:logger).errors).to include(described_class.send(:file_is_unavailable_message, 'url'))
+      expect(described_class.send(:logger).errors).to include(I18n.t(:file_is_unavailable, url: 'url'))
     end
   end
 
@@ -177,7 +177,7 @@ RSpec.describe FileDownloader do
     it "add error message to logger" do
       allow(Faraday).to receive(:get).and_return(bad_response)
       described_class.send(:download_file, 'url')
-      expect(described_class.send(:logger).errors).to include(described_class.send(:file_is_unavailable_message, 'url'))
+      expect(described_class.send(:logger).errors).to include(I18n.t(:file_is_unavailable, url: 'url'))
     end
   end
 
@@ -221,9 +221,8 @@ RSpec.describe FileDownloader do
       end
 
       it "puts correct message into logger when headers invalid" do
-        expected_message = described_class.send(:headers_invalid_message, url)
         described_class.send(:meta_data_valid?, meta_data, url)
-        expect(described_class.send(:logger).errors).to include(expected_message)
+        expect(described_class.send(:logger).errors).to include(I18n.t(:headers_invalid, url: url))
       end
     end
 
@@ -242,9 +241,8 @@ RSpec.describe FileDownloader do
       end
 
       it "puts correct message into logger when headers invalid" do
-        expected_message = described_class.send(:invalid_content_type_message, url)
         described_class.send(:meta_data_valid?, meta_data, url)
-        expect(described_class.send(:logger).errors).to include(expected_message)
+        expect(described_class.send(:logger).errors).to include(I18n.t(:invalid_content_type, url: url))
       end
     end
 
@@ -263,9 +261,8 @@ RSpec.describe FileDownloader do
       end
 
       it "puts correct message into logger when headers invalid" do
-        expected_message = described_class.send(:file_too_large_message, url)
         described_class.send(:meta_data_valid?, meta_data, url)
-        expect(described_class.send(:logger).errors).to include(expected_message)
+        expect(described_class.send(:logger).errors).to include(I18n.t(:file_too_large, url: url))
       end
     end
 
@@ -284,9 +281,8 @@ RSpec.describe FileDownloader do
       end
 
       it "puts correct message into logger when headers invalid" do
-        expected_message = described_class.send(:file_too_small_message, url)
         described_class.send(:meta_data_valid?, meta_data, url)
-        expect(described_class.send(:logger).errors).to include(expected_message)
+        expect(described_class.send(:logger).errors).to include(I18n.t(:file_too_small, url: url))
       end
     end
 
@@ -307,9 +303,8 @@ RSpec.describe FileDownloader do
       end
 
       it "puts correct message into logger when headers invalid" do
-        expected_message = described_class.send(:out_of_space_message, url)
         described_class.send(:meta_data_valid?, meta_data, url)
-        expect(described_class.send(:logger).errors).to include(expected_message)
+        expect(described_class.send(:logger).errors).to include(I18n.t(:out_of_space, url: url))
       end
     end
   end

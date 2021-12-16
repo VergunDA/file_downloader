@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'faraday', '~> 1.8'
   s.add_dependency 'rake', '~> 13.0', '>= 13.0.6'
   s.add_dependency 'sys-filesystem', '~> 1.4', '>= 1.4.3'
+  s.add_dependency  'i18n', '~> 1.8', '>= 1.8.11'
   s.add_development_dependency 'rubocop', '~> 1.23'
   s.add_development_dependency 'rspec', '~> 3.10'
   s.add_development_dependency 'rspec-core', '~> 3.10', '>= 3.10.1'
