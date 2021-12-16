@@ -30,7 +30,7 @@ RSpec.describe Validator do
   describe "#path_valid?" do
 
     it "return true when path valid" do
-      path = "/rspec/fixtures/valid_file.txt"
+      path = "/spec/fixtures/valid_file.txt"
       expect(path_valid? path).to be_truthy
     end
 
