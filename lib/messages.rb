@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 module Messages
-
-  private
-
+  
   def invalid_url_message(url)
     "URL #{url} is invalid"
   end
