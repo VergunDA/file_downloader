@@ -4,6 +4,7 @@ en:
   completed: "Download from file is completed. Download path: %{value}"
   download_started: "Download from %{url} is started"
   download_completed: "Download from %{url} is completed successfully"
+  download_failed: "Download from %{url} is failed"
   invalid_path: "ERROR: Invalid path %{value}. File does not exist"
   log_errors: "ERRORS: %{value}"
   invalid_url: "URL %{url} is invalid"

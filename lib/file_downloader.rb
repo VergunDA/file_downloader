@@ -42,7 +42,7 @@ module FileDownloader
 
         urls << url
       end
-      urls
+      urls.uniq!
     end
 
     def process_valid_urls(urls)
@@ -56,7 +56,7 @@ module FileDownloader
     def process_valid_url(url)
       puts I18n.t(:download_started, url: url)
       unless can_download?(url)
-        puts I18n.t(:failed)
+        puts I18n.t(:download_failed, url: url)
         return
       end
 
@@ -77,13 +77,17 @@ module FileDownloader
 
       logger.errors << I18n.t(:file_is_unavailable, url: url)
       nil
+    rescue Faraday::TimeoutError
+      logger.errors << I18n.t(:timeout_error, url: url)
+    rescue => e
+      logger.errors << I18n.t(:response_error, url: url, error: e.message)
     end
 
     def download_file(url)
       response = Faraday.get(url)
       unless response.status == 200
         logger.errors << I18n.t(:file_is_unavailable, url: url)
-        puts I18n.t(:failed)
+        puts I18n.t(:download_failed, url: url)
         return
       end
 
