@@ -2,16 +2,10 @@
 
 module Messages
 
+  private
+
   def invalid_url_message(url)
     "URL #{url} is invalid"
-  end
-
-  def file_too_large_message(url)
-    "File from #{url} is too large"
-  end
-
-  def file_too_small_message(url)
-    "File from #{url} is too small"
   end
 
   def out_of_space_message(url)

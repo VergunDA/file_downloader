@@ -1,10 +1,11 @@
 # frozen_string_literal: true
-require_relative 'validator'
-require_relative 'constants'
-require_relative 'messages'
-require 'json'
-require_relative 'logger'
+
 require 'faraday'
+require 'json'
+require_relative 'constants'
+require_relative 'logger'
+require_relative 'messages'
+require_relative 'validator'
 
 module FileDownloader
 
@@ -14,23 +15,26 @@ module FileDownloader
 
   class << self
 
-    attr_reader :logger
     attr_reader :downloads_path
+    attr_reader :logger; private :logger
+    attr_reader :file_path; private :logger
 
-    def download_from_file(path = Constants::Defaults::DEFAULT_PATH, downloads_path = Constants::Defaults::DOWNLOADS_PATH)
-      @downloads_path = downloads_path
+    def download_from_file(path = nil, downloads_path = nil)
+      @downloads_path = downloads_path || Constants::Defaults::DOWNLOADS_PATH
+      @file_path = path || Constants::Defaults::DEFAULT_PATH
       @logger = Logger.new
-      return unless path_valid? path
+      return unless path_valid?(file_path)
 
-      valid_urls = read_file(path)
+      valid_urls = read_file
       process_valid_urls(valid_urls)
       puts "ERRORS: #{logger.errors}" if logger.errors.size > 1
     end
 
-    def read_file(path)
+    private
+
+    def read_file
       urls = []
-      data = File.read(Constants::Defaults::ROOT + path)
-      data.split(' ').each do |url|
+      File.foreach(Constants::Defaults::ROOT + file_path, sep = ' ') do |url|
         url.strip!
         unless url_valid?(url)
           logger.errors << invalid_url_message(url)
@@ -43,18 +47,25 @@ module FileDownloader
     end
 
     def process_valid_urls(urls)
+      threads = []
       urls.each do |url|
-        puts "Process: #{url}"
-        download_file(url)
+        threads << Thread.new { process_valid_url(url) }
       end
+      threads.each(&:join)
     end
 
-    def download_file(url)
+    def process_valid_url(url)
+      puts "Download from #{url} is started"
       unless can_download?(url)
         puts "FAILED"
         return
       end
 
+      download_file(url)
+      puts "Download from #{url} is completed successfully"
+    end
+
+    def download_file(url)
       response = Faraday.get(url)
       unless response.status == 200
         logger.errors << file_is_unavailable_message(url)
@@ -70,47 +81,24 @@ module FileDownloader
     end
 
     def can_download?(url)
+      meta_data = fetch_file_metadata(url)
+      return false unless meta_data
+
+      meta_data_valid?(meta_data, url)
+    end
+
+    def fetch_file_metadata(url)
       response = Faraday.head(url)
-      unless response.status == 200
-        logger.errors << file_is_unavailable_message(url)
-        return false
-      end
+      return response.headers if response.status == 200
 
-      unless response_headers_valid?(response.headers)
-        logger.errors << headers_invalid_message(url)
-        return false
-      end
-
-      unless content_type_valid?(response.headers['content-type'])
-        logger.errors << invalid_content_type_message(url)
-        return false
-      end
-
-      unless max_size_valid?(response.headers['content-length'].to_i)
-        logger.errors << file_too_large_message(url)
-        return false
-      end
-
-      unless min_size_valid?(response.headers['content-length'].to_i)
-        logger.errors << file_too_small_message(url)
-        return false
-      end
-
-      unless space_available?(response.headers['content-length'].to_i)
-        logger.errors << out_of_space_message(url)
-        return false
-      end
-
-      true
+      logger.errors << file_is_unavailable_message(url)
+      nil
     end
 
     def save_file(response)
       file_name = file_name(response.headers['Etag'], response.headers['content-type'])
       path = downloads_path + "/#{file_name}"
-      File.open(path, 'w') do |file|
-        file.write response.body
-      end
-      puts "OK"
+      File.open(path, 'w') { |file| file.write response.body }
     end
 
     def file_name(etag, content_type)

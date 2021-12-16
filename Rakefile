@@ -2,7 +2,6 @@
 
 require 'rake'
 require_relative 'lib/file_downloader'
-Dir.glob('lib/tasks/*.rake').each { |r| load r }
 
 namespace :file_downloader do
 
