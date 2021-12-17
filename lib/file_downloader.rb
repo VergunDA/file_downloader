@@ -13,34 +13,42 @@ module FileDownloader
 
   class << self
 
-    attr_reader :downloads_path
-    attr_reader :file_path; private :file_path
-
     def download_from_file(path = nil, downloads_path = nil)
       puts I18n.t(:start)
       init_paths(path, downloads_path)
-      return unless paths_valid?(file_path, @downloads_path)
+      return unless paths_valid?(path, downloads_path)
 
-      valid_urls = read_file
-      process_valid_urls(valid_urls)
+      perform_downloading
       puts I18n.t(:log_errors, value: logger.errors) if logger.errors.size > 1
       puts I18n.t(:completed, value: FileDownloader.downloads_path)
     end
 
     private
 
-    def read_file
+    def perform_downloading
       urls = []
       File.foreach(file_path, sep = ' ') do |url|
         url.strip!
-        unless url_valid?(url)
-          logger.errors << I18n.t(:invalid_url, url: url)
-          next
-        end
+        next unless url_to_process?(url)
 
         urls << url
+        urls = check_process_valid_urls(urls)
       end
-      urls.uniq
+      process_valid_urls(urls.uniq)
+    end
+
+    def check_process_valid_urls(urls)
+      return urls unless urls.count == Constants::Restrictions::BATCH_SIZE
+
+      process_valid_urls(urls.uniq)
+      []
+    end
+
+    def url_to_process?(url)
+      return true if url_valid?(url)
+
+      logger.errors << I18n.t(:invalid_url, url: url)
+      false
     end
 
     def process_valid_urls(urls)
@@ -59,7 +67,6 @@ module FileDownloader
       end
 
       download_file(url)
-      puts I18n.t(:download_completed, url: url)
     end
 
     def can_download?(url)
@@ -90,6 +97,7 @@ module FileDownloader
       end
 
       save_file(response)
+      puts I18n.t(:download_completed, url: url)
     rescue Faraday::TimeoutError
       logger.errors << I18n.t(:timeout_error, url: url)
     rescue => e
@@ -111,10 +119,6 @@ module FileDownloader
       return "#{name}.#{type}"
     end
 
-    def logger
-      @logger ||= Logger.new
-    end
-
     def meta_data_valid?(meta_data, url)
       meta_data_conditions(meta_data).each do |condition|
         next if condition[:block].call
@@ -124,6 +128,22 @@ module FileDownloader
         return false
       end
       true
+    end
+
+    def paths_valid?(file, downloads)
+      message, path = if file_path.nil?
+                        [:invalid_path, file]
+                      elsif downloads_path.nil?
+                        [:invalid_download_path, downloads]
+                      end
+      return true unless message
+
+      puts I18n.t(message, value: path)
+      false
+    end
+
+    public def logger
+      @logger ||= Logger.new
     end
   end
 end

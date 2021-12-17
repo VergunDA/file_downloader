@@ -49,18 +49,6 @@ module Validator
     stat.blocks_free * stat.block_size
   end
 
-  def paths_valid?(file_path, downloads_path)
-    message, path = if file_path.nil?
-                      [:invalid_path, file_path]
-                    elsif downloads_path.nil?
-                      [:invalid_download_path, downloads_path]
-                    end
-    return true unless message
-
-    puts I18n.t(message, value: path)
-    false
-  end
-
   def meta_data_conditions(meta_data)
     [
       {

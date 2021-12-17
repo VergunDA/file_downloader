@@ -6,6 +6,7 @@ en:
   download_completed: "Download from %{url} is completed successfully"
   download_failed: "Download from %{url} is failed"
   invalid_path: "ERROR: Invalid path %{value}. File does not exist"
+  invalid_download_path: "ERROR: Invalid path %{value}. Directory does not exist"
   log_errors: "ERRORS: %{value}"
   invalid_url: "URL %{url} is invalid"
   out_of_space: "Unable to load File from %{url}. Low disk space"

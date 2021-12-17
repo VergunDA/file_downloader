@@ -18,6 +18,7 @@ module Constants
   end
 
   module Restrictions
+    BATCH_SIZE = 5
     MAX_SIZE = 100_000
     MIN_SIZE = 10
     SPACE_LIMIT = 1000_000

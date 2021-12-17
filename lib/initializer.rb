@@ -6,6 +6,9 @@ I18n.load_path << Dir[File.expand_path("config/locales") + "/*.yml"]
 
 module Initializer
 
+  attr_reader :downloads_path
+  attr_reader :file_path; private :file_path
+
   def init_paths(path, downloads_path)
     init_file_path(path)
     init_download_path(downloads_path)
