@@ -48,4 +48,41 @@ module Validator
     stat = Sys::Filesystem.stat('/')
     stat.blocks_free * stat.block_size
   end
+
+  def paths_valid?(file_path, downloads_path)
+    message, path = if file_path.nil?
+                      [:invalid_path, file_path]
+                    elsif downloads_path.nil?
+                      [:invalid_download_path, downloads_path]
+                    end
+    return true unless message
+
+    puts I18n.t(message, value: path)
+    false
+  end
+
+  def meta_data_conditions(meta_data)
+    [
+      {
+        message: :headers_invalid,
+        block: -> { response_headers_valid?(meta_data) }
+      },
+      {
+        message: :invalid_content_type,
+        block: -> { content_type_valid?(meta_data['content-type']) }
+      },
+      {
+        message: :file_too_large,
+        block: -> { max_size_valid?(meta_data['content-length'].to_i) }
+      },
+      {
+        message: :file_too_small,
+        block: -> { min_size_valid?(meta_data['content-length'].to_i) }
+      },
+      {
+        message: :out_of_space,
+        block: -> { space_available?(meta_data['content-length'].to_i) }
+      }
+    ]
+  end
 end

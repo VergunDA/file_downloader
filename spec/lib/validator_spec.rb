@@ -1,4 +1,5 @@
 require_relative '../../lib/validator'
+require_relative '../../lib/logger'
 require 'sys/filesystem'
 
 RSpec.describe Validator do

@@ -15,14 +15,12 @@ RSpec.describe FileDownloader do
         'Etag' => etag
       }
     end
-
     let(:head_response) do
       OpenStruct.new({
                        status: 200,
                        headers: valid_headers
                      })
     end
-
     let(:get_response) do
       OpenStruct.new({
                        status: 200,
@@ -47,7 +45,7 @@ RSpec.describe FileDownloader do
       end
 
       it "set default value to file_path" do
-        expect(described_class.send(:file_path)).to eq(Constants::Defaults::DEFAULT_PATH)
+        expect(described_class.send(:file_path)).to be_nil
       end
     end
 
@@ -306,6 +304,78 @@ RSpec.describe FileDownloader do
         described_class.send(:meta_data_valid?, meta_data, url)
         expect(described_class.send(:logger).errors).to include(I18n.t(:out_of_space, url: url))
       end
+    end
+  end
+
+  describe "#init_paths" do
+
+    let(:path) { "/spec/fixtures/tmp/file.txt" }
+    let(:downloads_path) { "/spec/fixtures/tmp" }
+
+
+    before do
+      allow(described_class).to receive(:init_file_path)
+      allow(described_class).to receive(:init_download_path)
+      described_class.send(:init_paths, path, downloads_path)
+    end
+
+    it "calls init_file_path once" do
+      expect(described_class).to have_received(:init_download_path).once
+    end
+
+    it "calls init_download_path once" do
+      expect(described_class).to have_received(:init_download_path).once
+    end
+
+  end
+
+  describe "#init_file_path" do
+
+    let(:path) { "/spec/fixtures/tmp/file.txt" }
+
+    it "don't init @file_path when nil" do
+      described_class.send(:init_file_path, nil)
+      expect(described_class.send(:init_file_path, nil)).to be_nil
+    end
+
+    it "don't init @file_path when file invalid_path" do
+      described_class.send(:init_file_path,'invalid path')
+      expect(described_class.send(:file_path)).to be_nil
+    end
+
+    it "init @file path when valid in directory" do
+      expected = root + path
+      expect(described_class.send(:init_file_path, path)).to eq(expected)
+    end
+
+    it "init @file path when valid out of directory" do
+      expected = root + path
+      expect(described_class.send(:init_file_path, root + path)).to eq(expected)
+    end
+  end
+
+  describe "#init_downloads_path" do
+
+    let(:path) { "/spec/fixtures/tmp" }
+
+    it "don't init @downloads_path when nil" do
+      described_class.send(:init_download_path, nil)
+      expect(described_class.send(:downloads_path)).to eq(Constants::Defaults::DOWNLOADS_PATH)
+    end
+
+    it "don't init @downloads_path when file invalid_path" do
+      described_class.send(:init_download_path,'invalid path')
+      expect(described_class.send(:downloads_path)).to be_nil
+    end
+
+    it "init @downloads_path when valid in directory" do
+      expected = root + path
+      expect(described_class.send(:init_download_path, path)).to eq(expected)
+    end
+
+    it "init @downloads_path when valid out of directory" do
+      expected = root + path
+      expect(described_class.send(:init_download_path, root + path)).to eq(expected)
     end
   end
 end

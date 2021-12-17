@@ -18,10 +18,7 @@ module FileDownloader
     def download_from_file(path = nil, downloads_path = nil)
       puts I18n.t(:start)
       init_paths(path, downloads_path)
-      unless path_valid?(file_path)
-        puts I18n.t(:invalid_path, value: path)
-        return
-      end
+      return unless paths_valid?(file_path, @downloads_path)
 
       valid_urls = read_file
       process_valid_urls(valid_urls)
@@ -33,7 +30,7 @@ module FileDownloader
 
     def read_file
       urls = []
-      File.foreach(Constants::Defaults::ROOT + file_path, sep = ' ') do |url|
+      File.foreach(file_path, sep = ' ') do |url|
         url.strip!
         unless url_valid?(url)
           logger.errors << I18n.t(:invalid_url, url: url)
@@ -42,7 +39,7 @@ module FileDownloader
 
         urls << url
       end
-      urls.uniq!
+      urls.uniq
     end
 
     def process_valid_urls(urls)
@@ -113,67 +110,44 @@ module FileDownloader
       return "#{name}.#{type}"
     end
 
-    def meta_data_valid?(meta_data, url)
-      meta_data_conditions(meta_data, url).each do |condition|
-        return false unless value_valid?(condition[:message]) { condition[:block].call }
-      end
-      true
-    end
-
-    def meta_data_conditions(meta_data, url)
-      [
-        {
-          message: I18n.t(:headers_invalid, url: url),
-          block: -> { response_headers_valid?(meta_data) }
-        },
-        {
-          message: I18n.t(:invalid_content_type, url: url),
-          block: -> { content_type_valid?(meta_data['content-type']) }
-        },
-        {
-          message: I18n.t(:file_too_large, url: url),
-          block: -> { max_size_valid?(meta_data['content-length'].to_i) }
-        },
-        {
-          message: I18n.t(:file_too_small, url: url),
-          block: -> { min_size_valid?(meta_data['content-length'].to_i) }
-        },
-        {
-          message: I18n.t(:out_of_space, url: url),
-          block: -> { space_available?(meta_data['content-length'].to_i) }
-        }
-      ]
-    end
-
-    def value_valid?(message)
-      is_valid = yield
-      unless is_valid
-        logger.errors << message
-        puts I18n.t(:failed)
-        return false
-      end
-      true
-    end
-
     def logger
       @logger ||= Logger.new
-    end
-
-    def init_file_path(path)
-      @file_path = path || Constants::Defaults::DEFAULT_PATH
-    end
-
-    def init_download_path(path)
-      @downloads_path = if path
-                          "#{Constants::Defaults::ROOT}/#{path}"
-                        else
-                          Constants::Defaults::DOWNLOADS_PATH
-                        end
     end
 
     def init_paths(path, downloads_path)
       init_file_path(path)
       init_download_path(downloads_path)
+    end
+
+    def init_file_path(path)
+      return unless path
+
+      @file_path = if File.exist? Constants::Defaults::ROOT + path
+                     Constants::Defaults::ROOT + path
+                   elsif File.exist? path
+                     path
+                   end
+    end
+
+    def init_download_path(path)
+      @downloads_path = if path && File.directory?("#{Constants::Defaults::ROOT}/#{path}")
+                          Constants::Defaults::ROOT + path
+                        elsif path && File.directory?(path)
+                          path
+                        elsif path.nil?
+                          Constants::Defaults::DOWNLOADS_PATH
+                        end
+    end
+
+    def meta_data_valid?(meta_data, url)
+      meta_data_conditions(meta_data).each do |condition|
+        next if condition[:block].call
+
+        logger.errors << I18n.t(condition[:message], url: url)
+        puts I18n.t(:failed)
+        return false
+      end
+      true
     end
   end
 end
