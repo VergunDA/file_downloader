@@ -27,7 +27,9 @@ module Initializer
                       elsif path && File.directory?(path)
                         path
                       elsif path.nil?
-                        Constants::Defaults::DOWNLOADS_PATH
+                        path = Constants::Defaults::DOWNLOADS_PATH
+                        Dir.mkdir path unless File.directory?(path)
+                        path
                       end
   end
 end
