@@ -2,11 +2,29 @@
 
 This gem implements a command line tool for downloading images from a list of urls and stores them on the local harddrive. 
 
+**INSTALLATION**
+
+>git clone git@github.com:VergunDA/file_downloader.git
+
+Change directory to file_downloader
+
+>cd file_downloader
+
+Run bundle install
+
+> change directory to file_downloader
+
 **USAGE**
 
-1. Install project.
-2. run rake task in command line
->rake file_downloader:download_from_file[path_to_file, path_to_download]
+Run rake task in command line in project's directory
 
-by default path_to_download Downloads directory in projects root
-whitespace separator by default
+>rake file_downloader:download_from_file[path_to_file, path_to_download, separator]
+
+**Defaults**
+ 
+path_to_download = /downloads in the projects root
+separator = ' ' (whitespace)
+
+**EXAMPLE OUTPUT**
+
+![This is an image](https://i2.paste.pics/FER2L.png)

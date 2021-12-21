@@ -7,7 +7,6 @@ namespace :file_downloader do
 
   desc 'Download files'
   task :download_from_file,[:path, :downloads_path] do |*args|
-    FileDownloader.init_paths('a', 'b')
     FileDownloader.download_from_file args[1][:path], args[1][:downloads_path]
   end
 end
