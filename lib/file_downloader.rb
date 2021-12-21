@@ -13,9 +13,9 @@ module FileDownloader
 
   class << self
 
-    def download_from_file(path = nil, downloads_path = nil)
+    def download_from_file(path = nil, downloads_path = nil, separator = ' ')
       puts I18n.t(:start)
-      init_paths(path, downloads_path)
+      init_instance_variables(path, downloads_path, separator)
       return unless paths_valid?(path, downloads_path)
 
       perform_downloading
@@ -27,7 +27,7 @@ module FileDownloader
 
     def perform_downloading
       urls = []
-      File.foreach(file_path, sep = ' ') do |url|
+      File.foreach(file_path, sep = separator) do |url|
         url.strip!
         next unless url_to_process?(url)
 

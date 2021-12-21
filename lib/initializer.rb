@@ -8,10 +8,12 @@ module Initializer
 
   attr_reader :downloads_path
   attr_reader :file_path; private :file_path
+  attr_reader :separator; private :separator
 
-  def init_paths(path, downloads_path)
+  def init_instance_variables(path, downloads_path, separator)
     init_file_path(path)
     init_download_path(downloads_path)
+    @separator = separator
   end
 
   def init_file_path(path)
