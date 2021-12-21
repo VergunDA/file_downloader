@@ -12,8 +12,9 @@ RSpec.describe FileDownloader do
     let(:timeout_url) { 'https://timeout.com' }
     let(:invalid_url) { 'invalid.com' }
     let(:invalid_status_url) { 'https://invalidstatus.com' }
-    let(:urls) { [invalid_url, timeout_url, valid_url, invalid_status_url] }
-    let(:path) { "/spec/fixtures/tmp/file_#{Random.rand(1000).to_s}.txt" }
+    let(:invalid_head_url) { 'https://invalidhead.com' }
+    let(:urls) { [invalid_url, timeout_url, valid_url, invalid_status_url, invalid_head_url] }
+    let(:path) { "/spec/fixtures/urls.txt" }
     let(:downloads_path) { root + '/spec/fixtures/tmp' }
 
     before do
@@ -24,7 +25,6 @@ RSpec.describe FileDownloader do
     context "when valid args" do
 
       before do
-        File.open(root + path, 'w+') { |file| file.write urls.join(' ') }
         described_class.download_from_file(path, downloads_path)
       end
 
@@ -101,6 +101,7 @@ RSpec.describe FileDownloader do
     context "when valid urls count grater than batch size" do
 
       let(:urls) { Array.new(10) { |i| "http://valid#{i}.com" } }
+      let(:path) { "/spec/fixtures/10_valid_urls.txt" }
 
       before do
         File.open(root + path, 'w+') { |file| file.write urls.join(' ') }

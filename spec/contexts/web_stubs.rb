@@ -11,9 +11,9 @@ RSpec.shared_context 'web stubs' do
   end
 
   let(:head_response) do
-    ->(etag) {
+    ->(etag, status) {
       OpenStruct.new({
-                       status: 200,
+                       status: status,
                        headers: valid_headers[etag]
                      })
     }
@@ -31,16 +31,17 @@ RSpec.shared_context 'web stubs' do
 
   let(:get_stub) {
     allow(Faraday).to receive(:get) do |args|
-      raise Faraday::TimeoutError if args == timeout_url
+      raise Faraday::TimeoutError if args == "https://timeout.com"
 
-      status = args == invalid_status_url ?  404 : 200
+      status = args == "https://invalidstatus.com" ?  404 : 200
       get_response[args.split('//').last, status]
     end
   }
 
   let(:head_stub) {
     allow(Faraday).to receive(:head) { |args|
-      head_response[args.split('//').last]
+      status = args == "https://invalidhead.com" ?  404 : 200
+      head_response[args.split('//').last, status]
     }
   }
 end
