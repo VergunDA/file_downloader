@@ -12,7 +12,11 @@ Change directory to file_downloader
 
 Run bundle install
 
-> change directory to file_downloader
+> bundle install
+
+Change directory to file_downloader
+
+>cd file_downloader
 
 **USAGE**
 
@@ -21,9 +25,12 @@ Run rake task in command line in project's directory
 >rake file_downloader:download_from_file[path_to_file, path_to_download, separator]
 
 **Defaults**
- 
-path_to_download = /downloads in the projects root
+
+<pre>
+path_to_download = /downloads (in the projects root)
+
 separator = ' ' (whitespace)
+</pre>
 
 **EXAMPLE OUTPUT**
 
