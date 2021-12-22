@@ -18,7 +18,3 @@ en:
   file_is_unavailable: "Unable to load File from %{url}. File is unavailable"
   response_error: "Unable to load File from %{url}. %{error}"
   failed: "FAILED"
-
-
-
-
