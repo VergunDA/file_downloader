@@ -79,10 +79,6 @@ RSpec.describe FileDownloader do
       end
     end
 
-    context "when invalid urls" do
-
-    end
-
     context "when invalid parameters" do
 
       let(:invalid_path) { "invalid_path" }
