@@ -33,8 +33,7 @@ RSpec.describe Validator do
   describe "#path_valid?" do
 
     it "return true when path valid" do
-      path = "/spec/fixtures/tmp/urls.txt"
-      File.open(Bundler.root.to_s + path, 'w+')
+      path = "/spec/fixtures/urls.txt"
       expect(path_valid? path).to be_truthy
     end
 

@@ -142,7 +142,7 @@ module FileDownloader
       false
     end
 
-    public def logger
+    def logger
       @logger ||= Logger.new
     end
   end

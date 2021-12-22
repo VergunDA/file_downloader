@@ -16,6 +16,7 @@ RSpec.describe FileDownloader do
     let(:urls) { [invalid_url, timeout_url, valid_url, invalid_status_url, invalid_head_url] }
     let(:path) { "/spec/fixtures/urls.txt" }
     let(:downloads_path) { root + '/spec/fixtures/tmp' }
+    let(:logger) { Logger.new }
 
     before do
       get_stub
@@ -25,6 +26,7 @@ RSpec.describe FileDownloader do
     context "when valid args" do
 
       before do
+        allow(described_class).to receive(:logger) { logger }
         described_class.download_from_file(path, downloads_path)
       end
 
@@ -65,16 +67,20 @@ RSpec.describe FileDownloader do
       end
 
       it "add timeout error to log" do
-        expect(described_class.logger.errors).to include(I18n.t(:timeout_error, url: timeout_url))
+        expect(logger.errors).to include(I18n.t(:timeout_error, url: timeout_url))
       end
 
       it "add invalid url error to log" do
-        expect(described_class.logger.errors).to include(I18n.t(:invalid_url, url: invalid_url))
+        expect(logger.errors).to include(I18n.t(:invalid_url, url: invalid_url))
       end
 
       it "add invalid status url error to log" do
-        expect(described_class.logger.errors).to include(I18n.t(:file_is_unavailable, url: invalid_status_url))
+        expect(logger.errors).to include(I18n.t(:file_is_unavailable, url: invalid_status_url))
       end
+    end
+
+    context "when invalid urls" do
+
     end
 
     context "when invalid parameters" do

@@ -14,10 +14,6 @@ Run bundle install
 
 > bundle install
 
-Change directory to file_downloader
-
->cd file_downloader
-
 **USAGE**
 
 Run rake task in command line in project's directory
