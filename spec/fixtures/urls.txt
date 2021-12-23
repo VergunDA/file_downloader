@@ -1,1 +1,1 @@
-invalid.com https://timeout.com https://valid.com https://invalidstatus.com https://invalidhead.com
+invalid.com https://timeout.com https://valid.com https://invalidstatus.com https://invalidhead.com https://emptyetag.com https://stringetag.com https://alreadyexists.com 

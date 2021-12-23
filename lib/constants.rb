@@ -19,7 +19,7 @@ module Constants
 
   module Restrictions
     BATCH_SIZE = 5
-    MAX_SIZE = 100_000
+    MAX_SIZE = 20_000_000
     MIN_SIZE = 10
     SPACE_LIMIT = 1000_000
     AVAILABLE_TYPES = %w[image/jpeg image/tiff image/x-icon image/bmp image/webp

@@ -65,15 +65,13 @@ RSpec.describe Validator do
     let(:valid_headers) do
       {
         'content-type' => 'image/jpeg',
-        'content-length' => '12345',
-        'Etag' => 'abcdef'
+        'content-length' => '12345'
       }
     end
     let(:invalid_headers) do
       {
         'content-type' => 'image/jpeg',
-        'content-length' => '12345',
-        'Etag' => []
+        'content-length' => []
       }
     end
 

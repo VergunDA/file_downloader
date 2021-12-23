@@ -13,9 +13,19 @@ RSpec.describe FileDownloader do
     let(:invalid_url) { 'invalid.com' }
     let(:invalid_status_url) { 'https://invalidstatus.com' }
     let(:invalid_head_url) { 'https://invalidhead.com' }
-    let(:urls) { [invalid_url, timeout_url, valid_url, invalid_status_url, invalid_head_url] }
+    let(:empty_etag_url) { 'https://emptyetag.com' }
+    let(:string_etag_url) { 'https://stringetag.com' }
+    let(:already_exists_url) { 'https://alreadyexists.com ' }
+    let(:urls) { [invalid_url, timeout_url, valid_url, invalid_status_url, invalid_head_url, empty_etag_url, string_etag_url, already_exists_url] }
     let(:path) { "/spec/fixtures/urls.txt" }
     let(:downloads_path) { root + '/spec/fixtures/tmp' }
+    let(:expected_path) do
+      ->(url) {
+        name = url == empty_etag_url ? 'image_1' : url.split('//').last
+        "#{downloads_path}/#{name}.jpeg"
+      }
+    end
+    let(:downloaded_file) { File.open("#{downloads_path}/alreadyexists.com.jpeg", 'w+') { |file| file.write "alreadyexists" } }
     let(:logger) { Logger.new }
 
     before do
@@ -26,7 +36,9 @@ RSpec.describe FileDownloader do
     context "when valid args" do
 
       before do
+        downloaded_file
         allow(described_class).to receive(:logger) { logger }
+        allow(Time).to receive(:now).and_return(1)
         described_class.download_from_file(path, downloads_path)
       end
 
@@ -38,32 +50,41 @@ RSpec.describe FileDownloader do
       end
 
       it "creates file from valid_url" do
-        expected_path = "#{downloads_path}/#{valid_url.split('//').last}.jpeg"
-        expect(File.exist?(expected_path)).to be_truthy
+        expect(File.exist?(expected_path[valid_url])).to be_truthy
       end
 
       it "add correct data to file" do
         name = valid_url.split('//').last
-        expected_path = "#{downloads_path}/#{name}.jpeg"
-        expect(File.read(expected_path)).to eq(name)
+        expect(File.read(expected_path[valid_url])).to eq(name)
+      end
+
+      it "creates file from empty etag url" do
+        expect(File.exist?(expected_path[empty_etag_url])).to be_truthy
+      end
+
+      it "add correct data to empty etag file" do
+        expect(File.read(expected_path[empty_etag_url])).to eq('body')
+      end
+
+      it "creates file from string etag url" do
+        expect(File.exist?(expected_path[string_etag_url])).to be_truthy
+      end
+
+      it "add correct data to file string etag url" do
+        name = string_etag_url.split('//').last
+        expect(File.read(expected_path[string_etag_url])).to eq(name)
       end
 
       it "do not create files from invalid url" do
-        name = invalid_url.split('//').last
-        expected_path = "#{downloads_path}/#{name}.jpeg"
-        expect(File.exist?(expected_path)).to be_falsey
+        expect(File.exist?(expected_path[invalid_url])).to be_falsey
       end
 
       it "do not create files from timeout url" do
-        name = timeout_url.split('//').last
-        expected_path = "#{downloads_path}/#{name}.jpeg"
-        expect(File.exist?(expected_path)).to be_falsey
+        expect(File.exist?(expected_path[timeout_url])).to be_falsey
       end
 
       it "do not create files from invalid status url" do
-        name = invalid_status_url.split('//').last
-        expected_path = "#{downloads_path}/#{name}.jpeg"
-        expect(File.exist?(expected_path)).to be_falsey
+        expect(File.exist?(expected_path[invalid_status_url])).to be_falsey
       end
 
       it "add timeout error to log" do
@@ -106,7 +127,6 @@ RSpec.describe FileDownloader do
       let(:path) { "/spec/fixtures/10_valid_urls.txt" }
 
       before do
-        File.open(root + path, 'w+') { |file| file.write urls.join(' ') }
         described_class.download_from_file(path, downloads_path)
       end
 
