@@ -61,16 +61,20 @@ module FileDownloader
 
     def process_valid_url(url)
       puts I18n.t(:download_started, url: url)
-      unless can_download?(url)
+      meta_data = fetch_file_metadata(url)
+      unless can_download?(url, meta_data)
         puts I18n.t(:download_failed, url: url)
         return
       end
 
-      download_file(url)
+      if url_downloaded?(meta_data["Etag"], meta_data['content-type'])
+        puts I18n.t(:download_exists, url: url)
+      else
+        download_file(url)
+      end
     end
 
-    def can_download?(url)
-      meta_data = fetch_file_metadata(url)
+    def can_download?(url, meta_data)
       return false unless meta_data
 
       meta_data_valid?(meta_data, url)
@@ -86,6 +90,12 @@ module FileDownloader
       logger.errors << I18n.t(:timeout_error, url: url)
     rescue => e
       logger.errors << I18n.t(:response_error, url: url, error: e.message)
+    end
+
+    def url_downloaded?(etag, content_type)
+      return false unless etag
+
+      File.exist? downloads_path + "/#{file_name(etag, content_type)}"
     end
 
     def download_file(url)
@@ -105,18 +115,21 @@ module FileDownloader
     end
 
     def save_file(response)
-      file_name = file_name(response.headers['Etag'], response.headers['content-type'])
-      path = downloads_path + "/#{file_name}"
+      name = file_name(response.headers['Etag'], response.headers['content-type'])
+      path = downloads_path + "/#{name}"
       File.open(path, 'w') { |file| file.write response.body }
     end
 
     def file_name(etag, content_type)
       type = content_type.scan(Constants::Defaults::FILE_TYPES).first
-      name = JSON.parse(etag)
+      name = etag ? parse_etag(etag) : "image_#{Time.now.to_i}"
+      "#{name}.#{type}"
+    end
+
+    def parse_etag(etag)
+      JSON.parse(etag)
     rescue JSON::ParserError
-      name = etag
-    ensure
-      return "#{name}.#{type}"
+      return etag
     end
 
     def meta_data_valid?(meta_data, url)
@@ -124,7 +137,6 @@ module FileDownloader
         next if condition[:block].call
 
         logger.errors << I18n.t(condition[:message], url: url)
-        puts I18n.t(:failed)
         return false
       end
       true

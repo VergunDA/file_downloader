@@ -18,8 +18,7 @@ module Validator
 
   def response_headers_valid?(headers)
     headers['content-type'].is_a?(String) &&
-      headers['content-length'].is_a?(String) &&
-      headers['Etag'].is_a?(String)
+      headers['content-length'].is_a?(String)
   end
 
   def space_available?(size)
